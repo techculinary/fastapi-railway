@@ -4,10 +4,13 @@ from typing import List
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
-import os
 
-# Get DATABASE_URL from Railway (set in environment variables)
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Directly paste your Railway public DB URL here 
+DATABASE_URL = "postgresql://postgres:jZbhNIrLTShrAIdgGCGBnsHiHEBIWxqm@centerbeam.proxy.rlwy.net:51263/railway"
+
+# Fix for old format postgres://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 # Create SQLAlchemy engine
 engine = create_engine(DATABASE_URL)
@@ -22,7 +25,7 @@ class Item(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     image = Column(String, nullable=False)  # store as URL string
-    description = Column(String, nullable=True)
+    disccription = Column(String, nullable=True)
     price = Column(Integer, nullable=False)
 
 # Create tables (only if not exists)
@@ -31,13 +34,12 @@ Base.metadata.create_all(bind=engine)
 # Pydantic Schema
 class ItemCreate(BaseModel):
     name: str
-    image: HttpUrl
-    description: str
+    image: str
+    disccription: str
     price: int
 
 class ItemRead(ItemCreate):
     id: int
-
     class Config:
         orm_mode = True
 
@@ -55,7 +57,7 @@ def get_db():
 # Routes
 @app.get("/", tags=["Health"])
 def health_check():
-    return {"status": "FastAPI service running on Railway 🚀"}
+    return {"status": "FastAPI service running 🚀"}
 
 @app.post("/items/", response_model=ItemRead)
 def create_item(item: ItemCreate, db: Session = Depends(get_db)):
